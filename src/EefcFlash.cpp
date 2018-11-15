@@ -237,52 +237,63 @@ EefcFlash::writeOptions(FlasherObserver &observer)
 {
     if (canBootFlash() && _bootFlash.isDirty() && _bootFlash.get() != getBootFlash())
     {
+        observer.onStatus("Setting boot from flash to %d", _bootFlash.get());
         waitFSR();
         writeFCR0(_bootFlash.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, (canBod() ? 3 : 1));
     }
     if (canBor() && _bor.isDirty() && _bor.get() != getBor())
     {
+        observer.onStatus("Setting BOR to %d", _bor.get());
         waitFSR();
         writeFCR0(_bor.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, 2);
     }
     if (canBod() && _bod.isDirty() && _bod.get() != getBod())
     {
+        observer.onStatus("Setting BOD to %d", _bod.get());
         waitFSR();
         writeFCR0(_bod.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, 1);
     }
     if (_regions.isDirty())
     {
-        uint32_t page;
-        std::vector<bool> current;
-
         if (_regions.get().size() > _lockRegions)
             throw FlashRegionError();
 
-        current = getLockRegions();
+        std::vector<bool> current = getLockRegions();
 
-        for (uint32_t region = 0; region < _lockRegions; region++)
-        {
-            observer.onProgress(region, _lockRegions);
+        std::vector<uint32_t> differences;
 
-            if (_regions.get()[region] != current[region])
-            {
-                if (_planes == 2 && region >= _lockRegions / 2)
-                {
-                    page = (region - _lockRegions / 2) * _pages / _lockRegions;
-                    waitFSR();
-                    writeFCR1(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
-                }
-                else
-                {
-                    page = region * _pages / _lockRegions;
-                    waitFSR();
-                    writeFCR0(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
-                }
+        for(uint32_t region = 0; region < _lockRegions; ++region) {
+            if(_regions.get()[region] != current[region]) {
+                differences.emplace_back(region);
             }
+        }
+
+        observer.onStatus("Unlocking %u regions", differences.size());
+
+        uint32_t region_count = 0;
+
+        for (auto region : differences)
+        {
+            observer.onProgress(region_count++, differences.size());
+
+            if (_planes == 2 && region >= _lockRegions / 2)
+            {
+                uint32_t page = (region - _lockRegions / 2) * _pages / _lockRegions;
+                waitFSR();
+                writeFCR1(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
+            }
+            else
+            {
+                uint32_t page = region * _pages / _lockRegions;
+                waitFSR();
+                writeFCR0(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
+            }
+
         }
     }
     if (_security.isDirty() && _security.get() == true && _security.get() != getSecurity())
     {
+        observer.onStatus("Setting security bit to %d", _security.get());
         waitFSR();
         writeFCR0(EEFC_FCMD_SGPB, 0);
     }

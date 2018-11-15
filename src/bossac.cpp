@@ -405,7 +405,7 @@ main(int argc, char* argv[])
         {
             timer_start();
             flasher.lock(config.unlockArg, false);
-            flash->writeOptions(<#initializer#>);
+            flash->writeOptions(observer);
             printf("\nDone in %5.3f seconds\n", timer_stop());
         }        
 
@@ -473,7 +473,7 @@ main(int argc, char* argv[])
         if (config.lock)
             flasher.lock(config.lockArg, true);
 
-        flash->writeOptions(<#initializer#>);
+        flash->writeOptions(observer);
 
         if (config.reset)
             device.reset();

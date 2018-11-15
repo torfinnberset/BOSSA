@@ -71,10 +71,10 @@ FlasherInfo::print()
 }
 
 void
-Flasher::erase(uint32_t foffset)
+Flasher::erase(uint32_t foffset, uint32_t eoffset)
 {
     _observer.onStatus("Erase flash\n");
-    _flash->eraseAll(foffset);
+    _flash->eraseAll(foffset, eoffset);
     _flash->eraseAuto(false);
 }
 

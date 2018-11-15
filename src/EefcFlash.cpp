@@ -90,10 +90,10 @@ EefcFlash::~EefcFlash()
 }
 
 void
-EefcFlash::eraseAll(uint32_t offset)
+EefcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
 {
     // Do a full chip erase if the offset is 0
-    if (offset == 0)
+    if (start_offset == 0 && end_offset == 0)
     {
         waitFSR();
         writeFCR0(EEFC_FCMD_EA, 0);
@@ -111,11 +111,17 @@ EefcFlash::eraseAll(uint32_t offset)
     else
     {
         // Offset must be on an erase page boundary
-        if (offset % (_size * PagesPerErase))
+        if (start_offset % (_size * PagesPerErase))
             throw FlashEraseError();
 
+        if (end_offset % (_size * PagesPerErase))
+            throw FlashEraseError();
+
+        uint32_t startPageNum =  start_offset / _size;
+        uint32_t endPageNum = end_offset == 0 ? _pages : end_offset / _size;
+
         // Erase each PagesPerErase set of pages
-        for (uint32_t pageNum = offset / _size; pageNum < _pages; pageNum += PagesPerErase)
+        for (uint32_t pageNum = startPageNum; pageNum < endPageNum; pageNum += PagesPerErase)
         {
             if (_planes == 1 || pageNum < _pages / 2)
             {

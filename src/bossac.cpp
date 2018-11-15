@@ -412,7 +412,7 @@ main(int argc, char* argv[])
         if (config.erase)
         {
             timer_start();
-            flasher.erase(config.offsetArg);
+            flasher.erase(config.offsetArg, 0);
             printf("\nDone in %5.3f seconds\n", timer_stop());
         }
 

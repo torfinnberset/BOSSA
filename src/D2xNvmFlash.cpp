@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "D2xNvmFlash.h"
+#include "Flasher.h"
 
 // CMDEX field should be 0xA5 to allow execution of any command.
 #define CMDEX_KEY                       0xa500
@@ -105,7 +106,7 @@ D2xNvmFlash::erase(uint32_t offset, uint32_t size)
 }
 
 void
-D2xNvmFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
+D2xNvmFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     // Use the extended Samba command if available
     if (_samba.canChipErase())

@@ -92,7 +92,7 @@ D5xNvmFlash::erase(uint32_t offset, uint32_t size)
 }
 
 void
-D5xNvmFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
+D5xNvmFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     // Use the extended Samba command if available
     if (_samba.canChipErase())

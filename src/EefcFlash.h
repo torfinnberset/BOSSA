@@ -33,6 +33,7 @@
 #include <exception>
 
 #include "Flash.h"
+#include "Flasher.h"
 
 class EefcFlash : public Flash
 {
@@ -50,7 +51,7 @@ public:
               bool canBrownout);
     virtual ~EefcFlash();
 
-    void eraseAll(uint32_t start_offset, uint32_t end_offset);
+    void eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer);
     void eraseAuto(bool enable);
 
     std::vector<bool> getLockRegions();

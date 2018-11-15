@@ -27,6 +27,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
 #include "EfcFlash.h"
+#include "Flasher.h"
 
 #include <assert.h>
 #include <unistd.h>
@@ -76,7 +77,7 @@ EfcFlash::~EfcFlash()
 }
 
 void
-EfcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
+EfcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     if (start_offset != 0)
         throw FlashEraseError();

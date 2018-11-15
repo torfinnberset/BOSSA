@@ -90,17 +90,21 @@ EefcFlash::~EefcFlash()
 }
 
 void
-EefcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
+EefcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     // Do a full chip erase if the offset is 0
     if (start_offset == 0 && end_offset == 0)
     {
         waitFSR();
         writeFCR0(EEFC_FCMD_EA, 0);
+
+        observer.onProgress(1, _planes);
+
         if (_planes == 2)
         {
             waitFSR();
             writeFCR1(EEFC_FCMD_EA, 0);
+            observer.onProgress(1, _planes);
         }
 
         // Erase all can take an exceptionally long time on some devices
@@ -123,6 +127,8 @@ EefcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset)
         // Erase each PagesPerErase set of pages
         for (uint32_t pageNum = startPageNum; pageNum < endPageNum; pageNum += PagesPerErase)
         {
+            observer.onProgress(pageNum, endPageNum);
+
             if (_planes == 1 || pageNum < _pages / 2)
             {
                 waitFSR();

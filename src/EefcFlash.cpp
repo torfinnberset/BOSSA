@@ -233,7 +233,7 @@ EefcFlash::getBootFlash()
 }
 
 void
-EefcFlash::writeOptions()
+EefcFlash::writeOptions(FlasherObserver &observer)
 {
     if (canBootFlash() && _bootFlash.isDirty() && _bootFlash.get() != getBootFlash())
     {
@@ -262,6 +262,8 @@ EefcFlash::writeOptions()
 
         for (uint32_t region = 0; region < _lockRegions; region++)
         {
+            observer.onProgress(region, _lockRegions);
+
             if (_regions.get()[region] != current[region])
             {
                 if (_planes == 2 && region >= _lockRegions / 2)

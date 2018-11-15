@@ -174,7 +174,7 @@ D5xNvmFlash::readUserPage(std::unique_ptr<uint8_t[]>& userPage)
 }
 
 void
-D5xNvmFlash::writeOptions()
+D5xNvmFlash::writeOptions(FlasherObserver &observer)
 {
     std::unique_ptr<uint8_t[]> userPage;
 

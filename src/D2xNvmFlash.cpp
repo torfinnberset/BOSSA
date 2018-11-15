@@ -181,7 +181,7 @@ D2xNvmFlash::readUserRow(std::unique_ptr<uint8_t[]>& userRow)
 }
 
 void
-D2xNvmFlash::writeOptions()
+D2xNvmFlash::writeOptions(FlasherObserver &observer)
 {
     std::unique_ptr<uint8_t[]> userRow;
 

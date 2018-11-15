@@ -163,7 +163,7 @@ EfcFlash::getBootFlash()
 }
 
 void
-EfcFlash::writeOptions()
+EfcFlash::writeOptions(FlasherObserver &observer)
 {
     if (canBootFlash() && _bootFlash.isDirty() && _bootFlash.get() != getBootFlash())
     {

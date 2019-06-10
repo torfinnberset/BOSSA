@@ -71,10 +71,10 @@ FlasherInfo::print()
 }
 
 void
-Flasher::erase(uint32_t foffset)
+Flasher::erase(uint32_t foffset, uint32_t eoffset)
 {
     _observer.onStatus("Erase flash\n");
-    _flash->eraseAll(foffset);
+    _flash->eraseAll(foffset, eoffset, _observer);
     _flash->eraseAuto(false);
 }
 
@@ -339,7 +339,6 @@ Flasher::lock(string& regionArg, bool enable)
             delim = regionArg.find(',', pos);
             sub = regionArg.substr(pos, delim - pos);
             region = strtol(sub.c_str(), NULL, 0);
-            _observer.onStatus("%s region %d\n", enable ? "Lock" : "Unlock", region);
             regions[region] = enable;
             pos = delim + 1;
         } while (delim != string::npos);

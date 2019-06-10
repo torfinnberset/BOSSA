@@ -38,7 +38,7 @@ public:
 
     virtual ~D5xNvmFlash();
 
-    void eraseAll(uint32_t offset);
+    void eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer);
     void eraseAuto(bool enable);
 
     std::vector<bool> getLockRegions();
@@ -54,7 +54,7 @@ public:
     bool getBootFlash();
     bool canBootFlash() { return false; }
 
-    void writeOptions();
+    void writeOptions(FlasherObserver &observer);
 
     void writePage(uint32_t page);
     void readPage(uint32_t page, uint8_t* data);

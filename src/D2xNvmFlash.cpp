@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "D2xNvmFlash.h"
+#include "Flasher.h"
 
 // CMDEX field should be 0xA5 to allow execution of any command.
 #define CMDEX_KEY                       0xa500
@@ -105,16 +106,16 @@ D2xNvmFlash::erase(uint32_t offset, uint32_t size)
 }
 
 void
-D2xNvmFlash::eraseAll(uint32_t offset)
+D2xNvmFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     // Use the extended Samba command if available
     if (_samba.canChipErase())
     {
-        _samba.chipErase(offset);
+        _samba.chipErase(start_offset);
     }
     else
     {
-        erase(offset, totalSize() - offset);
+        erase(start_offset, totalSize() - start_offset);
     }
 }
 
@@ -180,7 +181,7 @@ D2xNvmFlash::readUserRow(std::unique_ptr<uint8_t[]>& userRow)
 }
 
 void
-D2xNvmFlash::writeOptions()
+D2xNvmFlash::writeOptions(FlasherObserver &observer)
 {
     std::unique_ptr<uint8_t[]> userRow;
 

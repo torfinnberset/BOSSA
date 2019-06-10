@@ -90,17 +90,21 @@ EefcFlash::~EefcFlash()
 }
 
 void
-EefcFlash::eraseAll(uint32_t offset)
+EefcFlash::eraseAll(uint32_t start_offset, uint32_t end_offset, FlasherObserver &observer)
 {
     // Do a full chip erase if the offset is 0
-    if (offset == 0)
+    if (start_offset == 0 && end_offset == 0)
     {
         waitFSR();
         writeFCR0(EEFC_FCMD_EA, 0);
+
+        observer.onProgress(1, _planes);
+
         if (_planes == 2)
         {
             waitFSR();
             writeFCR1(EEFC_FCMD_EA, 0);
+            observer.onProgress(1, _planes);
         }
 
         // Erase all can take an exceptionally long time on some devices
@@ -111,12 +115,20 @@ EefcFlash::eraseAll(uint32_t offset)
     else
     {
         // Offset must be on an erase page boundary
-        if (offset % (_size * PagesPerErase))
+        if (start_offset % (_size * PagesPerErase))
             throw FlashEraseError();
 
+        if (end_offset % (_size * PagesPerErase))
+            throw FlashEraseError();
+
+        uint32_t startPageNum =  start_offset / _size;
+        uint32_t endPageNum = end_offset == 0 ? _pages : end_offset / _size;
+
         // Erase each PagesPerErase set of pages
-        for (uint32_t pageNum = offset / _size; pageNum < _pages; pageNum += PagesPerErase)
+        for (uint32_t pageNum = startPageNum; pageNum < endPageNum; pageNum += PagesPerErase)
         {
+            observer.onProgress(pageNum, endPageNum);
+
             if (_planes == 1 || pageNum < _pages / 2)
             {
                 waitFSR();
@@ -221,54 +233,67 @@ EefcFlash::getBootFlash()
 }
 
 void
-EefcFlash::writeOptions()
+EefcFlash::writeOptions(FlasherObserver &observer)
 {
     if (canBootFlash() && _bootFlash.isDirty() && _bootFlash.get() != getBootFlash())
     {
+        observer.onStatus("Setting boot from flash to %d", _bootFlash.get());
         waitFSR();
         writeFCR0(_bootFlash.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, (canBod() ? 3 : 1));
     }
     if (canBor() && _bor.isDirty() && _bor.get() != getBor())
     {
+        observer.onStatus("Setting BOR to %d", _bor.get());
         waitFSR();
         writeFCR0(_bor.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, 2);
     }
     if (canBod() && _bod.isDirty() && _bod.get() != getBod())
     {
+        observer.onStatus("Setting BOD to %d", _bod.get());
         waitFSR();
         writeFCR0(_bod.get() ? EEFC_FCMD_SGPB : EEFC_FCMD_CGPB, 1);
     }
     if (_regions.isDirty())
     {
-        uint32_t page;
-        std::vector<bool> current;
-
         if (_regions.get().size() > _lockRegions)
             throw FlashRegionError();
 
-        current = getLockRegions();
+        std::vector<bool> current = getLockRegions();
 
-        for (uint32_t region = 0; region < _lockRegions; region++)
-        {
-            if (_regions.get()[region] != current[region])
-            {
-                if (_planes == 2 && region >= _lockRegions / 2)
-                {
-                    page = (region - _lockRegions / 2) * _pages / _lockRegions;
-                    waitFSR();
-                    writeFCR1(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
-                }
-                else
-                {
-                    page = region * _pages / _lockRegions;
-                    waitFSR();
-                    writeFCR0(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
-                }
+        std::vector<uint32_t> differences;
+
+        for(uint32_t region = 0; region < _lockRegions; ++region) {
+            if(_regions.get()[region] != current[region]) {
+                differences.emplace_back(region);
             }
+        }
+
+        observer.onStatus("Unlocking %u regions", differences.size());
+
+        uint32_t region_count = 0;
+
+        for (auto region : differences)
+        {
+            observer.onProgress(region_count++, differences.size());
+
+            if (_planes == 2 && region >= _lockRegions / 2)
+            {
+                uint32_t page = (region - _lockRegions / 2) * _pages / _lockRegions;
+                waitFSR();
+                writeFCR1(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
+            }
+            else
+            {
+                uint32_t page = region * _pages / _lockRegions;
+                waitFSR();
+                writeFCR0(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
+            }
+
         }
     }
     if (_security.isDirty() && _security.get() == true && _security.get() != getSecurity())
     {
+        observer.onStatus("Setting security bit to %d", _security.get());
         waitFSR();
         writeFCR0(EEFC_FCMD_SGPB, 0);
     }

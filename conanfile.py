@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class BossaConan(ConanFile):
     name = "bossa"
-    version = "1.9.2"
+    version = "1.9.1+bloom1"
     license = "BSD-3"
     url = "https://github.com/torfinnberset/BOSSA"
     description = "BOSSA is a flash programming utility for Atmel's SAM family of flash-based ARM microcontrollers"
@@ -11,18 +11,15 @@ class BossaConan(ConanFile):
     options = {"shared": [True, False]}
     default_options = "shared=False"
     generators = "cmake"
-
-    def source(self):
-        git = tools.Git(folder="BOSSA")
-        git.clone("https://github.com/torfinnberset/BOSSA", "conan-pkg")
+    exports_sources = ["src/*", "CMakeLists.txt"]
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(source_folder="BOSSA")
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy("*.h", dst="include", src="BOSSA/src", keep_path=False)
+        self.copy("*.h", dst="include", src="src", keep_path=False)
         self.copy("*.a", dst="lib", keep_path=False)
 
     def package_info(self):

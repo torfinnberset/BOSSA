@@ -259,22 +259,23 @@ EefcFlash::writeOptions(FlasherObserver &observer)
             throw FlashRegionError();
 
         std::vector<bool> current = getLockRegions();
-
-        std::vector<uint32_t> differences;
+        uint32_t differences[current.size()];
+        std::size_t num_regions = 0;
 
         for(uint32_t region = 0; region < _lockRegions; ++region) {
-            if(_regions.get()[region] != current[region]) {
-                differences.emplace_back(region);
+            if(_regions.get().at(region) != current.at(region)) {
+                differences[num_regions++] = region;
             }
         }
 
-        observer.onStatus("Unlocking %u regions", differences.size());
+        observer.onStatus("Unlocking %u regions", num_regions);
 
         uint32_t region_count = 0;
 
-        for (auto region : differences)
+        for (std::size_t idx = 0; idx < num_regions; ++idx)
         {
-            observer.onProgress(region_count++, differences.size());
+            auto region = differences[idx];
+            observer.onProgress(region_count++, num_regions);
 
             if (_planes == 2 && region >= _lockRegions / 2)
             {
@@ -288,7 +289,6 @@ EefcFlash::writeOptions(FlasherObserver &observer)
                 waitFSR();
                 writeFCR0(_regions.get()[region] ? EEFC_FCMD_SLB : EEFC_FCMD_CLB, page);
             }
-
         }
     }
     if (_security.isDirty() && _security.get() == true && _security.get() != getSecurity())

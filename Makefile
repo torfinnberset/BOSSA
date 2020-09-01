@@ -3,7 +3,7 @@
 #
 # Version
 #
-VERSION=$(shell git describe --tags --dirty)
+VERSION?=$(shell git describe --tags --dirty)
 WXVERSION=3.0
 
 #
@@ -221,6 +221,7 @@ BOSSASH_LIBS=-lreadline $(COMMON_LIBS)
 # Main targets
 #
 all: $(BINDIR)/bossa$(EXE) $(BINDIR)/bossac$(EXE) $(BINDIR)/bossash$(EXE)
+bossac: $(BINDIR)/bossac$(EXE)
 
 #
 # Common rules

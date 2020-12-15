@@ -4,6 +4,14 @@ project(bossa CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+
+conan_basic_setup(TARGETS)
+
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
 add_library(bossa
         src/CmdOpts.cpp
         src/Samba.cpp
@@ -18,7 +26,8 @@ add_library(bossa
         src/Flasher.cpp
         src/Device.cpp
         src/PosixSerialPort.cpp
-        src/OSXPortFactory.cpp
+        $<$<BOOL:${APPLE}>:src/OSXPortFactory.cpp>
+        $<$<BOOL:${LINUX}>:src/LinuxPortFactory.cpp>
         )
 
 target_include_directories(bossa PUBLIC ${CMAKE_CURRENT_LIST_DIR}/BOSSA/src)

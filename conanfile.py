@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class BossaConan(ConanFile):
     name = "bossa"
-    version = "1.9.1+bloom1"
+    version = "1.9.1+bloom2"
     license = "BSD-3"
     url = "https://github.com/torfinnberset/BOSSA"
     description = "BOSSA is a flash programming utility for Atmel's SAM family of flash-based ARM microcontrollers"
